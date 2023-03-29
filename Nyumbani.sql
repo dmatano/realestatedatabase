@@ -1,4 +1,3 @@
--- create a postgresql database named nyumbani
 CREATE DATABASE nyumbani;
 -- create a table named property
 CREATE TABLE property (
@@ -36,7 +35,6 @@ CREATE TABLE tenant (
     phone VARCHAR(255) NOT NULL,
 );
 
--- insert 10 values into the tenant table in one query
 INSERT INTO tenant (name, email, phone) VALUES
 ('Otieno Eric', 'etieno@mail.com', '123456789'),
 ('Jaka Kimba', 'jakakimba@mail.com', '987654321'),
@@ -57,7 +55,6 @@ CREATE TABLE landlord (
     phone VARCHAR(255) NOT NULL,
 );
 
--- insert 10 values into the landlord table in one query
 INSERT INTO landlord (name, email, phone) VALUES
 ('Mary Jane', 'mjane@mail.com', '123456789'),
 ('Ibrahim mohamed', 'mohamed@mail.com', '989654321'),
@@ -78,18 +75,20 @@ CREATE TABLE property_landlord (
     landlord_id INTEGER REFERENCES landlord(id)
 );
 
+-- create a trigger named property_landlord_trigger to insert values into the
+--  property_landlord table when a new value is inserted into the property table
+CREATE OR REPLACE FUNCTION property_landlord_trigger() RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO property_landlord (property_id, landlord_id) VALUES (NEW.id, NEW.landlord_id);
+    RETURN NEW;
+END;
+
 -- create a table named property_tenant
 CREATE TABLE property_tenant (
     id SERIAL PRIMARY KEY,
     property_id INTEGER REFERENCES property(id),    
     tenant_id INTEGER REFERENCES tenant(id)
 );
---create a trigger to update the property table when a new tenant is added
-CREATE OR REPLACE FUNCTION update_property_tenant() RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE property SET tenant_id = NEW.tenant_id WHERE id = NEW.property_id;
-    RETURN NEW;
-END;
 
 
 --create table named agent
@@ -101,3 +100,47 @@ CREATE TABLE agent (
     commission_rate VARCHAR(255) NOT NULL,
 );
 
+INSERT INTO agent (name, email, phone, commission_rate) VALUES
+('John Doe', 'john@gmail.com', '123456789', '10%'),
+('Jane Doe', 'jane@mail.com', '987654321', '10%'),
+('John Smith', 'jsmith@mail.com', '123456789', '10%'),
+('Jones Smith', 'janesmith@mail.com', '987654321', '10%'),
+('John Kamau', 'kamauj@gmail.com', '123456789', '10%'),
+('chris Kamau', 'ckamu@gmail.com', '987654321', '10%'),
+('George Mwangi', 'gamwangi@mail.com', '123456789', '10%'),
+('Josef Mwaura', 'josef@amil.com', '987654321', '10%'),
+('Andy koech', 'akoech@mail.com', '123456789', '10%'),
+('Jibril Issa', 'jissa@mail.com', '987654321', '10%');
+
+-- create a table named property_agent
+CREATE TABLE property_agent (
+    id SERIAL PRIMARY KEY,
+    property_id INTEGER REFERENCES property(id),
+    agent_id INTEGER REFERENCES agent(id)
+);
+ -- create a trigger to update the property_agent table when a new property is added
+
+CREATE OR REPLACE FUNCTION update_property_agent() RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE property SET agent_id = NEW.agent_id WHERE id = NEW.property_id;
+    RETURN NEW;
+END; 
+
+--create a trigger to delete a property from the property_agent table when a property is deleted
+
+CREATE OR REPLACE FUNCTION delete_property_agent() RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM property_agent WHERE property_id = OLD.id;
+    RETURN OLD;
+END; 
+
+-- a postgresql function named get_all_properties that returns all the properties
+--  in the property table in the nyumbani database as a json object
+CREATE OR REPLACE FUNCTION get_all_properties()
+RETURNS json AS $$
+    SELECT json_agg(property) FROM property;
+$$ LANGUAGE SQL;
+
+-- call the get_all_properties function
+
+SELECT get_all_properties();
