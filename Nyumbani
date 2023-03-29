@@ -48,3 +48,56 @@ INSERT INTO tenant (name, email, phone) VALUES
 ('Ian Wathe', 'iwathe@mail.com', '4673647676'),
 ('Kipkoech John', 'jkipkoech@mail.com', '123456789'),
 ('Talam Ruto', 'truto@mail.com', '987654321');
+
+-- create a table named landlord
+CREATE TABLE landlord (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(255) NOT NULL,
+);
+
+-- insert 10 values into the landlord table in one query
+INSERT INTO landlord (name, email, phone) VALUES
+('Mary Jane', 'mjane@mail.com', '123456789'),
+('Ibrahim mohamed', 'mohamed@mail.com', '989654321'),
+('wanjiru ciru', 'ciru@mail.com','8213456789'),
+('nasieku sintei', 'sintei@mail.com', '988654321'),
+('gabow noor', 'nogabow@mail.com', '123456789'),
+('Duncan mohamed', 'duncan@mail.com', '987654321'),
+('seyyid said', 'said@mail.com', '123456789'),
+('Grace otieno', 'gotieno@mail.com', '987624321'),
+('Fatuma Aisha', 'fatuma@mail.com', '345456789'),
+('Moses Musa', 'musa@mail.com', '987654321');
+
+
+-- create a table named property_landlord
+CREATE TABLE property_landlord (
+    id SERIAL PRIMARY KEY,
+    property_id INTEGER REFERENCES property(id),
+    landlord_id INTEGER REFERENCES landlord(id)
+);
+
+-- create a table named property_tenant
+CREATE TABLE property_tenant (
+    id SERIAL PRIMARY KEY,
+    property_id INTEGER REFERENCES property(id),    
+    tenant_id INTEGER REFERENCES tenant(id)
+);
+--create a trigger to update the property table when a new tenant is added
+CREATE OR REPLACE FUNCTION update_property_tenant() RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE property SET tenant_id = NEW.tenant_id WHERE id = NEW.property_id;
+    RETURN NEW;
+END;
+
+
+--create table named agent
+CREATE TABLE agent (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(255) NOT NULL,
+    commission_rate VARCHAR(255) NOT NULL,
+);
+
